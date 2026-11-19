@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a0033"/>
+      <stop offset="0.55" stop-color="#3a0044"/>
+      <stop offset="0.78" stop-color="#ff006e"/>
+      <stop offset="1" stop-color="#ff8c00"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe600"/>
+      <stop offset="1" stop-color="#ff2a6d"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#0a0014"/>
+  <rect x="0" y="0" width="512" height="300" fill="url(#sky)"/>
+  <circle cx="256" cy="232" r="92" fill="url(#sun)" filter="url(#glow2)"/>
+  <g fill="#0a0014">
+    <rect x="170" y="180" width="172" height="5"/>
+    <rect x="170" y="196" width="172" height="6"/>
+    <rect x="170" y="214" width="172" height="8"/>
+    <rect x="170" y="234" width="172" height="11"/>
+    <rect x="170" y="258" width="172" height="15"/>
+  </g>
+  <rect x="0" y="300" width="512" height="212" fill="#06000f"/>
+  <g stroke="#00f3ff" stroke-width="2" fill="none" filter="url(#glow)" opacity="0.85">
+    <line x1="0" y1="320" x2="512" y2="320"/>
+    <line x1="0" y1="345" x2="512" y2="345"/>
+    <line x1="0" y1="378" x2="512" y2="378"/>
+    <line x1="0" y1="422" x2="512" y2="422"/>
+    <line x1="0" y1="480" x2="512" y2="480"/>
+    <line x1="256" y1="300" x2="0" y2="512"/>
+    <line x1="256" y1="300" x2="170" y2="512"/>
+    <line x1="256" y1="300" x2="342" y2="512"/>
+    <line x1="256" y1="300" x2="512" y2="512"/>
+  </g>
+  <g filter="url(#glow2)">
+    <polygon points="256,322 232,372 280,372" fill="#00f3ff"/>
+    <rect x="232" y="372" width="48" height="14" fill="#00bcd4" opacity="0.85"/>
+  </g>
+  <g fill="#ff00ea" filter="url(#glow)" opacity="0.9">
+    <circle cx="120" cy="470" r="6"/>
+    <circle cx="392" cy="470" r="6"/>
+  </g>
+</svg>

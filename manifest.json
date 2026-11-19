@@ -1,0 +1,15 @@
+{
+  "name": "Neon Drift",
+  "short_name": "Neon Drift",
+  "description": "A 3-lane endless synthwave neon dodging racer. Boost, dodge, collect energy cells, and beat your best.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0a0014",
+  "theme_color": "#0a0014",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
