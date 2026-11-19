@@ -50,6 +50,7 @@
     obstacleEdge: '#ff00ea',
     rival: '#ff00ea',
     coin: '#ffe600',
+    shield: '#3affa0',
     mountain: '#1a0033',
     mountainEdge: '#7a00cc',
     star: '#ffffff'
@@ -122,6 +123,7 @@
 
   let obstacles = [];
   let coins = [];
+  let shieldCount = 0;            // v0.0.2 — shield pickups held (absorb a crash)
   let particles = [];
   let stars = [];
   let mountains = [];
@@ -237,6 +239,7 @@
     boostCooldown = 0;
     obstacles = [];
     coins = [];
+    shieldCount = 0;            // v0.0.2 — reset shield count
     particles = [];
     gridPhase = 0;
     player.lane = 1;
@@ -271,6 +274,8 @@
     elFinalBest.textContent = best.toLocaleString();
     elNewRecord.classList.toggle('show', isRecord);
     setHudVisible(false);
+    shieldCount = 0;
+    if (window.MUX) MUX.over();
     // brief delay so the explosion is visible before the panel
     setTimeout(() => { if (state === 'over') showScreen('over'); }, 520);
   }
@@ -283,6 +288,7 @@
     state = 'start';
     obstacles = [];
     coins = [];
+    shieldCount = 0;            // v0.0.2 — reset shield count
     particles = [];
     setHudVisible(false);
     showScreen('start');
@@ -421,9 +427,10 @@
         rot: 0
       });
     } else {
-      // coin
+      // coin (or rare shield pickup — v0.0.2: absorbs one crash)
       const lane = Math.floor(Math.random() * LANES);
-      coins.push({ lane, z: 0.02, spin: Math.random() * Math.PI * 2 });
+      const isShield = Math.random() < 0.10;
+      coins.push({ lane, z: 0.02, spin: Math.random() * Math.PI * 2, shield: isShield });
     }
   }
 
@@ -528,6 +535,14 @@
       if (o.z >= COLLISION_Z_MIN && o.z <= COLLISION_Z_MAX) {
         const oFrac = laneFracFromIndex(o.lane);
         if (Math.abs(pFrac - oFrac) < LANE_HIT_THRESH) {
+          if (shieldCount > 0) {            // v0.0.2 — shield absorbs one crash
+            shieldCount--;
+            obstacles.splice(i, 1);
+            burst(laneToX(oFrac, o.z), projY(o.z), COLORS.shield, 20, 150);
+            if (window.MUX) MUX.hit();
+            elScore.textContent = score.toLocaleString() + (shieldCount > 0 ? ' 🛡' + shieldCount : '');
+            return;
+          }
           gameOver();
           return;
         }
@@ -539,9 +554,10 @@
       if (c.z >= COIN_Z_MIN && c.z <= COIN_Z_MAX) {
         const cFrac = laneFracFromIndex(c.lane);
         if (Math.abs(pFrac - cFrac) < LANE_HIT_THRESH) {
-          score += COIN_VALUE;
+          if (c.shield) { shieldCount = Math.min(shieldCount + 1, 2); if (window.MUX) MUX.bump(); }
+          else { score += COIN_VALUE; }
           const cx = laneToX(cFrac, c.z);
-          burst(cx, projY(c.z), COLORS.coin, 14, 120);
+          burst(cx, projY(c.z), c.shield ? COLORS.shield : COLORS.coin, 14, 120);
           coins.splice(i, 1);
           continue;
         }
@@ -567,7 +583,7 @@
     gridPhase = (gridPhase + curSpeed * 3 * dt) % 1;
 
     // HUD
-    elScore.textContent = score.toLocaleString();
+    elScore.textContent = score.toLocaleString() + (shieldCount > 0 ? ' 🛡' + shieldCount : '');
     const totalMult = (baseSpeed / INITIAL_BASE_SPEED) * speedMultiplier;
     elSpeed.textContent = totalMult.toFixed(1) + 'x';
     updateBoostMeterUI();
@@ -830,8 +846,8 @@
     ctx.translate(cx, cy);
     ctx.rotate(c.spin);
     ctx.shadowBlur = 14 * s + 4;
-    ctx.shadowColor = COLORS.coin;
-    ctx.fillStyle = COLORS.coin;
+    ctx.shadowColor = c.shield ? COLORS.shield : COLORS.coin;
+    ctx.fillStyle = c.shield ? COLORS.shield : COLORS.coin;
     ctx.beginPath();
     ctx.moveTo(0, -r);
     ctx.lineTo(r, 0);
