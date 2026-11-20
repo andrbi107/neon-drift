@@ -31,6 +31,13 @@
   const COIN_Z_MAX = 1.12;
   const LANE_HIT_THRESH = 0.5;        // |fracLane - obstacleLane| < this => overlap
 
+  // v0.0.4 — distance tiers + rival ghost
+  const TIER_DISTANCE = 1000;          // distance units per tier
+  const TIER_SPEED_FACTOR = 1.06;      // baseSpeed multiplier per tier
+  const TIER_BANNER_DUR_S = 1.2;       // tier banner display duration (seconds)
+  const GHOST_SAMPLE_INTERVAL = 100;   // sample player lane every N distance units
+  const GHOST_KEY = 'neonDrift.ghost'; // localStorage key for best ghost
+
   const COLORS = {
     skyTop: '#1a0033',
     skyMid: '#3a0044',
@@ -110,6 +117,13 @@
   let boostCooldown = 0;
 
   let gridPhase = 0;
+
+  // v0.0.4 — distance tiers + rival ghost
+  let currentTier = 1;
+  let tierBanner = null;        // { text, t, dur }
+  let ghostSamples = [];        // current run lane samples (one per GHOST_SAMPLE_INTERVAL)
+  let ghostReplay = null;       // best-run ghost samples (array of lane indices)
+  let ghostBestDist = 0;        // distance of stored best ghost
 
   const player = {
     lane: 1,            // integer target lane 0..LANES-1
@@ -212,6 +226,24 @@
     return false;
   }
 
+  // v0.0.4 — rival ghost persistence
+  function loadGhost() {
+    try {
+      const raw = localStorage.getItem(GHOST_KEY);
+      if (!raw) { ghostReplay = null; ghostBestDist = 0; return; }
+      const obj = JSON.parse(raw);
+      ghostReplay = Array.isArray(obj.samples) ? obj.samples : null;
+      ghostBestDist = Number(obj.dist) || 0;
+    } catch (e) { ghostReplay = null; ghostBestDist = 0; }
+  }
+  function saveGhost() {
+    // only persist if this run exceeded the stored best distance
+    if (distance <= ghostBestDist) return;
+    try {
+      localStorage.setItem(GHOST_KEY, JSON.stringify({ dist: distance, samples: ghostSamples }));
+    } catch (e) {}
+  }
+
   /* ------------------------- state flow ------------------------------ */
   function showScreen(name) {
     elStartScreen.classList.toggle('active', name === 'start');
@@ -242,6 +274,10 @@
     shieldCount = 0;            // v0.0.2 — reset shield count
     particles = [];
     gridPhase = 0;
+    currentTier = 1;
+    tierBanner = null;
+    ghostSamples = [];
+    loadGhost();
     player.lane = 1;
     player.fracLane = 1;
     player.fromFrac = 1;
@@ -267,6 +303,7 @@
   function gameOver() {
     if (state !== 'playing') return;
     state = 'over';
+    saveGhost();                       // v0.0.4 — persist rival ghost if new best distance
     burst(playerScreenX(), player.y, COLORS.player, 30, 220);
     burst(playerScreenX(), player.y, COLORS.obstacle, 18, 160);
     const isRecord = saveBest();
@@ -574,6 +611,29 @@
     const newScore = Math.floor(distance / SCORE_PX_PER_POINT);
     if (newScore !== score && newScore > score) score = newScore;
 
+    // v0.0.4 — distance tiers: every TIER_DISTANCE, bump speed + flash banner + achievements
+    const newTier = Math.floor(distance / TIER_DISTANCE) + 1;
+    if (newTier > currentTier) {
+      for (let t = currentTier + 1; t <= newTier; t++) {
+        baseSpeed *= TIER_SPEED_FACTOR;
+        tierBanner = { text: 'TIER ' + t, t: 0, dur: TIER_BANNER_DUR_S };
+        const tierDist = (t - 1) * TIER_DISTANCE;
+        if (tierDist === 1000 && window.GK) GK.achievement('t1k', 'Cruiser', '1000m');
+        else if (tierDist === 3000 && window.GK) GK.achievement('t3k', 'Speed Demon', '3000m');
+        else if (tierDist === 7000 && window.GK) GK.achievement('t7k', 'Hypersonic', '7000m');
+      }
+      currentTier = newTier;
+    }
+    if (tierBanner) {
+      tierBanner.t += dt;
+      if (tierBanner.t >= tierBanner.dur) tierBanner = null;
+    }
+
+    // v0.0.4 — sample player lane for rival ghost every GHOST_SAMPLE_INTERVAL distance units
+    while (Math.floor(distance / GHOST_SAMPLE_INTERVAL) > ghostSamples.length) {
+      ghostSamples.push(player.lane);
+    }
+
     // particles
     exhaustParticle();
     if (Math.random() < 0.5) exhaustParticle();
@@ -635,11 +695,13 @@
     }
 
     if (state === 'playing' || state === 'paused' || state === 'over') {
+      drawGhost();
       drawPlayer();
     }
     drawParticles();
 
     if (boostActive) drawBoostOverlay();
+    if (tierBanner) drawTierBanner();
   }
 
   function drawSky() {
@@ -976,6 +1038,56 @@
     ctx.restore();
   }
 
+  // v0.0.4 — distance tier banner (brief flash on tier crossing)
+  function drawTierBanner() {
+    if (!tierBanner) return;
+    const tt = tierBanner.t / tierBanner.dur;
+    let a = 1;
+    if (tt < 0.15) a = tt / 0.15;                 // fade in
+    else if (tt > 0.75) a = Math.max(0, (1 - tt) / 0.25); // fade out
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.fillStyle = COLORS.coin;
+    ctx.font = 'bold 40px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = COLORS.coin;
+    ctx.shadowBlur = 22;
+    ctx.fillText(tierBanner.text, W / 2, H * 0.28);
+    ctx.restore();
+  }
+
+  // v0.0.4 — rival ghost: translucent silhouette replaying the best run's lane line
+  function drawGhost() {
+    if (!ghostReplay || ghostReplay.length === 0) return;
+    if (state !== 'playing' && state !== 'paused') return;
+    const gi = Math.floor(distance / GHOST_SAMPLE_INTERVAL);
+    if (gi < 0) return;
+    const idx = Math.min(gi, ghostReplay.length - 1);
+    const lane = ghostReplay[idx];
+    if (lane == null || lane < 0 || lane >= LANES) return;
+    const gx = laneToX(laneFracFromIndex(lane), 1);
+    const gy = player.y;
+    const w = player.width, h = player.height;
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = COLORS.player;
+    // simplified rear-view car silhouette (body + wheels)
+    ctx.fillStyle = COLORS.player;
+    ctx.fillRect(gx - w * 0.46, gy - h * 0.25, w * 0.92, h * 0.7);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#10141c';
+    ctx.beginPath(); ctx.ellipse(gx - w * 0.46, gy + h * 0.32, w * 0.1, h * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(gx + w * 0.46, gy + h * 0.32, w * 0.1, h * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+    // outline to read as a car at low alpha
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = COLORS.playerCore;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(gx - w * 0.46, gy - h * 0.25, w * 0.92, h * 0.7);
+    ctx.restore();
+  }
+
   /* ------------------------------ loop ------------------------------- */
   function loop(now) {
     rafId = requestAnimationFrame(loop);
@@ -1006,3 +1118,8 @@
 
   init();
 })();
+// ---- v0.0.4 gamekit wiring ----
+if (window.GK) {
+  GK.help({ title: "Neon Drift", objective: "Dodge obstacles, collect coins, and boost as far as you can.", controls: ["Touch: drag left/right to switch lanes","Arrows / A,D: switch lanes","Space / tap: boost","P: pause","F: fullscreen"], tips: "Coins fill your boost meter." });
+  GK.exposeState(function () { try { return { score: (window.S && window.S.score) || window.score || 0, mode: (window.S && window.S.mode) || 'play', wave: (window.S && window.S.wave) || 0 }; } catch (e) { return {}; } });
+}
