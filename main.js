@@ -1118,8 +1118,11 @@
 
   init();
 })();
-// ---- v0.0.4 gamekit wiring ----
+// ---- v0.0.5 gamekit wiring (splash + menu + stats + leaderboard + auto-update) ----
 if (window.GK) {
-  GK.help({ title: "Neon Drift", objective: "Dodge obstacles, collect coins, and boost as far as you can.", controls: ["Touch: drag left/right to switch lanes","Arrows / A,D: switch lanes","Space / tap: boost","P: pause","F: fullscreen"], tips: "Coins fill your boost meter." });
+  GK.boot({ title: "Neon Drift", tagline: "Synthwave lane racer", theme: "#0b0518" });
+  GK.help({ title: "Neon Drift", objective: "Dodge obstacles, collect coins, and boost as far as you can.", controls: ["Touch: drag left/right to switch lanes","Arrows / A,D: switch lanes","Space / tap: boost","P: pause","F: fullscreen"], tips: "Coins fill your boost. Beat your ghost from the best run." });
   GK.exposeState(function () { try { return { score: (window.S && window.S.score) || window.score || 0, mode: (window.S && window.S.mode) || 'play', wave: (window.S && window.S.wave) || 0 }; } catch (e) { return {}; } });
+  GK._manualRecord = false;
+  setTimeout(function () { GK.ready(); }, 600);
 }
