@@ -1,6 +1,6 @@
 // Neon Drift — service worker
 // Precaches the full app shell so the game loads and plays fully offline.
-const CACHE = 'neon-drift-v2';
+const CACHE = 'neon-drift-v3';
 const ASSETS = [
   './',
   './index.html', './mobile-ux.js',

@@ -888,27 +888,52 @@
     }
     ctx.restore();
 
-    // body
+    // body — v0.0.3 detailed rear-view car (spoiler, window, taillights, bumper, wheels)
     ctx.save();
+    // rear spoiler (top bar) + supports
     ctx.shadowBlur = boostActive ? 30 : 18;
     ctx.shadowColor = COLORS.player;
-    ctx.fillStyle = COLORS.player;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - h * 0.5);            // tip
-    ctx.lineTo(cx - w * 0.5, cy + h * 0.5);  // base left
-    ctx.lineTo(cx + w * 0.5, cy + h * 0.5);  // base right
-    ctx.closePath();
-    ctx.fill();
-    // inner core
-    ctx.shadowBlur = 0;
     ctx.fillStyle = COLORS.playerCore;
-    ctx.globalAlpha = 0.85;
+    ctx.fillRect(cx - w * 0.46, cy - h * 0.5, w * 0.92, Math.max(3, h * 0.1));
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = COLORS.player;
+    ctx.fillRect(cx - w * 0.34, cy - h * 0.42, Math.max(2, w * 0.06), h * 0.1);
+    ctx.fillRect(cx + w * 0.28, cy - h * 0.42, Math.max(2, w * 0.06), h * 0.1);
+    // rear window (dark glass)
+    ctx.fillStyle = '#0a1a2a';
     ctx.beginPath();
-    ctx.moveTo(cx, cy - h * 0.25);
-    ctx.lineTo(cx - w * 0.22, cy + h * 0.25);
-    ctx.lineTo(cx + w * 0.22, cy + h * 0.25);
+    ctx.moveTo(cx - w * 0.3, cy - h * 0.34);
+    ctx.lineTo(cx + w * 0.3, cy - h * 0.34);
+    ctx.lineTo(cx + w * 0.2, cy - h * 0.08);
+    ctx.lineTo(cx - w * 0.2, cy - h * 0.08);
     ctx.closePath();
     ctx.fill();
+    // main body (cyan gradient)
+    ctx.shadowBlur = boostActive ? 26 : 14;
+    ctx.shadowColor = COLORS.player;
+    const bodyGrad = ctx.createLinearGradient(0, cy - h * 0.25, 0, cy + h * 0.45);
+    bodyGrad.addColorStop(0, COLORS.playerCore);
+    bodyGrad.addColorStop(0.5, COLORS.player);
+    bodyGrad.addColorStop(1, '#0a8a9a');
+    ctx.fillStyle = bodyGrad;
+    ctx.fillRect(cx - w * 0.46, cy - h * 0.25, w * 0.92, h * 0.7);
+    ctx.shadowBlur = 0;
+    // cabin highlight stripe
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(cx - w * 0.3, cy - h * 0.22, w * 0.6, Math.max(2, h * 0.05));
+    // taillights (red, glowing)
+    ctx.fillStyle = '#ff2a4a';
+    ctx.shadowBlur = 8; ctx.shadowColor = '#ff2a4a';
+    ctx.fillRect(cx - w * 0.38, cy - h * 0.1, w * 0.2, Math.max(2, h * 0.09));
+    ctx.fillRect(cx + w * 0.18, cy - h * 0.1, w * 0.2, Math.max(2, h * 0.09));
+    ctx.shadowBlur = 0;
+    // bumper (dark)
+    ctx.fillStyle = '#0a1420';
+    ctx.fillRect(cx - w * 0.46, cy + h * 0.28, w * 0.92, Math.max(3, h * 0.12));
+    // wheels (peeking at bottom sides)
+    ctx.fillStyle = '#10141c';
+    ctx.beginPath(); ctx.ellipse(cx - w * 0.46, cy + h * 0.32, w * 0.1, h * 0.13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + w * 0.46, cy + h * 0.32, w * 0.1, h * 0.13, 0, 0, Math.PI * 2); ctx.fill();
     // rear underglow
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = boostActive ? COLORS.coin : COLORS.player;

@@ -2,10 +2,10 @@
 
 > یک مسابقه‌ی dodging سنت‌ویو سه‌خطی بی‌پایان با حال‌وهوای outrun ۱۹۸۰ — PWA با Vanilla JS.
 
-[![Version](https://img.shields.io/badge/version-v0.0.2-blue)](https://github.com/andrbi107/neon-drift/releases/tag/v0.0.2) [![PWA](https://img.shields.io/badge/PWA-installable-purple)](https://andrbi107.github.io/neon-drift/) [![No deps](https://img.shields.io/badge/dependencies-none-success)](https://github.com/andrbi107/neon-drift) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-v0.0.3-blue)](https://github.com/andrbi107/neon-drift/releases/tag/v0.0.3) [![PWA](https://img.shields.io/badge/PWA-installable-purple)](https://andrbi107.github.io/neon-drift/) [![No deps](https://img.shields.io/badge/dependencies-none-success)](https://github.com/andrbi107/neon-drift) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 🎮 **[بازی کن](https://andrbi107.github.io/neon-drift/)** — نسخه‌ی آنلاین روی GitHub Pages
-📦 **[مخزن گیت‌هاب](https://github.com/andrbi107/neon-drift)** · 🏷️ **[Release v0.0.2](https://github.com/andrbi107/neon-drift/releases/tag/v0.0.2)**
+📦 **[مخزن گیت‌هاب](https://github.com/andrbi107/neon-drift)** · 🏷️ **[Release v0.0.3](https://github.com/andrbi107/neon-drift/releases/tag/v0.0.3)**
 
 ---
 
@@ -14,6 +14,12 @@
 **Neon Drift** — shield pickup: ~۱۰٪ سکه‌ها سبز (shield) هستند؛ جمع‌کردن یک سپر می‌سازد که یک crash را جذب می‌کند (run ادامه می‌یابد). نشانگر 🛡 در HUD. haptic روی absorb/pickup/game-over.
 
 **همه‌ی بازی‌ها** — `mobile-ux.js` مشترک (haptics/install prompt/version stamp) + cache sw.js به v2.
+
+---
+
+## تغییرات v0.0.3 (جدید)
+
+**Neon Drift** — ماشین بازیکن از یک مثلث انتزاعی به یک ماشین واقعی‌نمای پشت‌نما (چراغ عقب قرمز، اسپویلر، شیشه، چرخ) تغییر یافت.
 
 ---
 
